@@ -1,12 +1,16 @@
+
 express = require('express')
-logfmt = require('logfmt')
-app = express()
-
-app.use logfmt.requestLogger()
-
-app.get '/', (req, res) -> 
-	res.send 'Hello Coffee!'
-
+bootstrap = require('./app/bootstrap.coffee')
 port = Number(process.env.PORT || 5000)
-app.listen port, -> 
-	console.log 'Listening on ' + port
+
+
+app = express()
+bootstrap.setup app, (app) -> 
+
+	console.log 'Finding routeHandlers'
+	for handlerName in ['index']
+    	Handler = require './app/routeHandlers/' + handlerName + '.coffee'
+    	(new Handler()).setup app
+
+server = app.listen port, -> 
+    console.log 'Listening on ' + server.address().port
