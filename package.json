@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/jaredpearson/mtg-cardviewer-nodejs",
   "dependencies": {
+    "coffee-script": "^1.7.1",
     "express": "^3.16.6",
     "logfmt": "^1.1.2"
   }
