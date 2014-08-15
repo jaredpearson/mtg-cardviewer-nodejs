@@ -1,0 +1,23 @@
+{
+  "name": "mtg-cardviewer-nodejs",
+  "version": "1.0.0",
+  "description": "Magic the Gathering Card Viewer",
+  "main": "web.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jaredpearson/mtg-cardviewer-nodejs.git"
+  },
+  "author": "Jared Pearson",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jaredpearson/mtg-cardviewer-nodejs/issues"
+  },
+  "homepage": "https://github.com/jaredpearson/mtg-cardviewer-nodejs",
+  "dependencies": {
+    "express": "^3.16.6",
+    "logfmt": "^1.1.2"
+  }
+}
