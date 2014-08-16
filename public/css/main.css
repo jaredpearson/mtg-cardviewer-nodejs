@@ -1,3 +1,7 @@
 body {
-	color: red;
+	font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+
+.set-symbol-16 {
+	width: 16px;
 }

@@ -8,7 +8,7 @@ app = express()
 bootstrap.setup app, (app) -> 
 
 	console.log 'Finding routeHandlers'
-	for handlerName in ['index']
+	for handlerName in ['index', 'setResource']
     	Handler = require './app/routeHandlers/' + handlerName + '.coffee'
     	(new Handler()).setup app
 
