@@ -3,9 +3,19 @@
 <head>
 	<meta charset="utf-8" />
 	<title>{{title}}</title>
+	<link href="//maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet">
 	<link href="/css/main.css" media="all" rel="stylesheet" type="text/css" />
+
+	<script src="/javascript/ext/jquery/2.1.1/jquery-2.1.1.min.js"></script>
+	<script src="/javascript/ext/underscore.js/1.6.0/underscore-min.js"></script>
+	<script src="/javascript/ext/backbone.js/1.1.2/backbone-min.js"></script>
 </head>
 <body>
-{{{body}}}
+	<div id="layout-header">
+		<div class="header-button"><a href="/"><i class="fa fa-home fa-lg"></i></a></div>
+	</div>
+	<div id="layout-body">
+		{{{body}}}
+	</div>
 </body>
 </html>

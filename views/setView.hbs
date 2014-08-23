@@ -1,10 +1,172 @@
 <h1>{{set.name}}</h1>
-<div style="display: table">
-	{{#each cards}}
-		<div style="display: table-row">
-			<div style="display: table-cell">
-				{{this.name}}
-			</div>
-		</div>
-	{{/each}}
+<div class="js-cardlist-container">
+    <div class="js-cardlist-tablecontainer">
+        <div class="js-cardlist-table"></div>
+    </div>
+    <div class="js-cardlist-cardview"></div>
 </div>
+
+<style type="text/css">
+.js-cardlist-container {
+    height: 400px;
+    box-sizing: border-box;
+}
+
+.js-cardlist-container:after {
+    content: "";
+    display: table;
+    clear: both;
+}
+.js-cardlist-tablecontainer {
+    float: left;
+    width: 33%;
+    overflow: scroll;
+    height: 400px;
+    box-sizing: border-box;
+}
+.js-cardlist-table {
+    display: table;
+    width: 100%;
+}
+.js-cardlist-cardview {
+    float: left;
+    width: 66%;
+    overflow: scroll;
+    height: 400px;
+    box-sizing: border-box;
+}
+.cardrow-selected {
+    background-color: #ccc;
+}
+
+</style>
+
+<script type="text/javascript">
+var CardListView = Backbone.View.extend({
+    initialize: function() {
+        this.selected = null;
+        this.selectedIndex = -1;
+        this.cardViews = [];
+
+        application.keyboard.on('keydown', function(e) {
+            var adjustment = 0;
+            if (e.which === 40 && this.selectedIndex + 1 <= this.collection.length) {
+                adjustment = 1;
+            } else if(e.which === 38 && this.selectedIndex - 1 >= 0) {
+                adjustment = -1;
+            }
+
+            if (adjustment !== 0) {
+                e.preventDefault();
+                e.stopPropagation();
+                this.selectByIndex(this.selectedIndex + adjustment);
+            }
+        }, this);
+    },
+    destroy: function() {
+
+    },
+    render: function() {
+        var fragment = document.createDocumentFragment();
+        this.collection.each(function(card, index){
+            var childView = new CardListItemView({model: card}).render();
+            childView.$el.appendTo(fragment);
+            childView.on('selected', function() {
+                this._select(childView, index);
+            }, this);
+            this.cardViews.push(childView);
+        }, this);
+        this.$el.empty().append(fragment);
+        return this;
+    },
+    selectByIndex: function(index) {
+        var cardView = this.cardViews[index];
+        this._select(cardView, index);
+        cardView.el.scrollIntoView();
+    },
+    _select: function(cardView, index) {
+        // unselect the previous
+        if(this.selected) {
+            this.selected.unselect();
+        }
+        cardView.select({trigger: false});
+
+        this.selected = cardView;
+        this.selectedIndex = index;
+        application.vent.trigger('card:show', {
+            card: cardView.model
+        });
+    }
+});
+var CardListItemView = Backbone.View.extend({
+    className: 'js-cardrow',
+    attributes: {
+        style: 'display: table-row'
+    },
+    events: {
+        'click': '_onSelected'
+    },
+    render: function() {
+        this.$el.empty();
+        $('<div>')
+            .css({display: 'table-cell'})
+            .text(this.model.get('name'))
+            .appendTo(this.$el);
+        return this;
+    },
+    unselect: function() {
+        this.$el.removeClass('cardrow-selected')
+    },
+    select: function(options) {
+        this.$el.addClass('cardrow-selected');
+        if (options === undefined || (options && options.trigger)) {
+            this.trigger('selected');
+        }
+    },
+    _onSelected: function(e) {
+        e.stopPropagation();
+        e.preventDefault();
+        this.select();
+    }
+});
+var CardView = Backbone.View.extend({
+    render: function() {
+        this.$el.empty();
+        $('<div>')
+            .text(this.model.get('name'))
+            .appendTo(this.$el);
+        $('<img>')
+            .attr({
+                src: this.model.get('fullImageUrl'),
+                title: this.model.get('name')
+            })
+            .appendTo(this.$el);
+        return this;
+    }
+});
+
+var application = {};
+application.vent = _.extend(Backbone.Events);
+application.keyboard = _.extend(Backbone.Events);
+
+(function(){
+    var cardsArray = {{{cardsAsJson}}};
+    var cardsCollection = new Backbone.Collection(cardsArray);
+
+    $(document).keydown(function(e) {
+        application.keyboard.trigger('keydown', e);
+    });
+
+    var view = new CardListView({
+        el: $('.js-cardlist-table'),
+        collection: cardsCollection
+    }).render();
+
+    application.vent.on('card:show', function(options) {
+        var cardView = new CardView({
+            el: $('.js-cardlist-cardview'),
+            model: options.card
+        }).render();
+    });
+})();
+</script>

@@ -17,10 +17,25 @@ class SetResourceHandler
 
             cards = cardData.cardsBySet set.code
 
+            cardsAsJson = this.createCardsAsJson(set, cards);
+
             res.render('setView', {
-                title: 'Set ',
-                set: set,
+                title: 'Set '
+                set: set
+                cardsAsJson: cardsAsJson
                 cards: cards
             })
+
+    createCardsAsJson: (set, cards) ->
+
+        uiCardsArray = (for card in cards
+            cleanCardName = card.name.replace('Æ', 'AE').toLowerCase()
+
+            {
+                name: card.name
+                fullImageUrl: "http://mtgimage.com/actual/set/#{set.code.toLowerCase()}/#{cleanCardName}.hq.jpg" 
+            } 
+        )
+        JSON.stringify(uiCardsArray)
 
 module.exports = SetResourceHandler
