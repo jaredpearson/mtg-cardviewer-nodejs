@@ -5,14 +5,10 @@ filePath = __dirname + '/../data/AllSets.json'
 # this is used by the getSetSymbolImage to override 
 # the default image lookup
 setToImage = 
-    'CNS': ''
     'ITP': ''
-    'M15': ''
-    'MD1': ''
     'RQS': ''
     'TSB': '/symbol/set/TSP/c/16.png'
-    'VAN': ''
-    'VMA': ''
+    'VAN': '/symbol/set/VAN/special/16.png'
 
 # gets the symbol image for the given set, if one has been defined
 getSetSymbolImage = (set) ->
