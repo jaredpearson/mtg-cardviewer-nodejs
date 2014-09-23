@@ -1,45 +1,10 @@
 <h1>{{set.name}}</h1>
-<div class="js-cardlist-container">
-    <div class="js-cardlist-tablecontainer">
-        <div class="js-cardlist-table"></div>
+<div class="cardlist-container">
+    <div class="cardlist-tablecontainer">
+        <div class="cardlist-table"></div>
     </div>
-    <div class="js-cardlist-cardview"></div>
+    <div class="cardlist-cardview"></div>
 </div>
-
-<style type="text/css">
-.js-cardlist-container {
-    height: 400px;
-    box-sizing: border-box;
-}
-
-.js-cardlist-container:after {
-    content: "";
-    display: table;
-    clear: both;
-}
-.js-cardlist-tablecontainer {
-    float: left;
-    width: 33%;
-    overflow: scroll;
-    height: 400px;
-    box-sizing: border-box;
-}
-.js-cardlist-table {
-    display: table;
-    width: 100%;
-}
-.js-cardlist-cardview {
-    float: left;
-    width: 66%;
-    overflow: scroll;
-    height: 400px;
-    box-sizing: border-box;
-}
-.cardrow-selected {
-    background-color: #ccc;
-}
-
-</style>
 
 <script type="text/javascript">
 var CardListView = Backbone.View.extend({
@@ -99,19 +64,33 @@ var CardListView = Backbone.View.extend({
     }
 });
 var CardListItemView = Backbone.View.extend({
-    className: 'js-cardrow',
-    attributes: {
-        style: 'display: table-row'
-    },
+    className: 'cardrow',
     events: {
         'click': '_onSelected'
     },
     render: function() {
         this.$el.empty();
         $('<div>')
-            .css({display: 'table-cell'})
             .text(this.model.get('name'))
             .appendTo(this.$el);
+
+        $('<div>')
+            .text(this.model.get('type'))
+            .appendTo(this.$el);
+
+        var $manaCostContainer = $('<div>')
+            .appendTo(this.$el);
+
+        _.each(this.model.get('manaCost').parts, function(partValue) {
+            $('<img>')
+                .attr({
+                    'src': 'http://mtgimage.com/symbol/all/' + partValue.replace('/', '') + '/16.png',
+                    'title': partValue,
+                    'alt': partValue
+                })
+                .appendTo($manaCostContainer);
+        });
+
         return this;
     },
     unselect: function() {
@@ -129,18 +108,25 @@ var CardListItemView = Backbone.View.extend({
         this.select();
     }
 });
+
+/**
+ * View of the card that is currently selected
+ */
 var CardView = Backbone.View.extend({
     render: function() {
         this.$el.empty();
-        $('<div>')
-            .text(this.model.get('name'))
+
+        var $cardImageContainer = $('<div>')
+            .addClass('cardlist-cardview-imagecontainer')
             .appendTo(this.$el);
+
         $('<img>')
+            .addClass('cardlist-cardview-image')
             .attr({
                 src: this.model.get('fullImageUrl'),
                 title: this.model.get('name')
             })
-            .appendTo(this.$el);
+            .appendTo($cardImageContainer);
         return this;
     }
 });
@@ -158,13 +144,13 @@ application.keyboard = _.extend(Backbone.Events);
     });
 
     var view = new CardListView({
-        el: $('.js-cardlist-table'),
+        el: $('.cardlist-table'),
         collection: cardsCollection
     }).render();
 
     application.vent.on('card:show', function(options) {
         var cardView = new CardView({
-            el: $('.js-cardlist-cardview'),
+            el: $('.cardlist-cardview'),
             model: options.card
         }).render();
     });

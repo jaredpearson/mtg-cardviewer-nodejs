@@ -1,0 +1,75 @@
+body 
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif
+    margin: 0
+    padding: 0
+    font-size: 90%
+
+
+#layout-header 
+    padding: 10px;
+    margin-bottom: 10px;
+    background-color: black;
+
+    a 
+        text-decoration: initial;
+        color: white;
+
+#layout-body 
+    padding: 0 10px 0 10px;
+
+h1 
+    margin: 0;
+    padding: 0;
+
+.set-symbol-16 
+    max-height: 16px;
+
+.setView
+    $cardViewPanelWidth = 300px
+
+    .cardlist-container 
+        box-sizing: border-box
+        border-top: 1px solid #eee
+    
+    .cardlist-tablecontainer 
+        width: "calc(100vw - (%s + 10px))" % $cardViewPanelWidth
+        overflow: scroll
+        height: calc(100vh - 85px)
+        box-sizing: border-box
+    
+        .cardlist-table 
+            display: table
+            width: 100%
+
+            & > div
+                display: table-row
+
+                & > div
+                    display: table-cell
+                    border-bottom: 1px solid #eee
+
+    
+    .cardlist-cardview 
+        position: absolute
+        top: 82px
+        right: 0
+        bottom: 0
+        width: $cardViewPanelWidth
+        overflow: scroll
+        box-sizing: border-box
+        padding: 10px
+        background-color: #eee
+
+        &-imagecontainer
+            width: 250px
+            height: 354px
+            background-image: url(http://mtgimage.com/card/cardback.jpg)
+            background-size: contain
+            margin-left: auto
+            margin-right: auto
+        &-image
+            width: 250px
+    
+    .cardrow-selected 
+        background-color: #ccc
+    
