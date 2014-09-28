@@ -82,6 +82,7 @@ h1
         font-size: 50%
         vertical-align: text-top
         padding-top: 4px
+        cursor: pointer
 
     .setselector-panel
         position: absolute
@@ -91,3 +92,14 @@ h1
         border: 1px solid #eee
         overflow: scroll
         box-sizing: border-box
+        border-bottom-left-radius: 10px;
+        border-bottom-right-radius: 10px;
+
+        &-item
+            display: table-row
+            cursor: pointer
+
+            & > div
+                display: table-cell
+                padding-left: 10px
+

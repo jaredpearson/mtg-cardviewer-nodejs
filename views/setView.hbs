@@ -148,15 +148,12 @@ var CardView = Backbone.View.extend({
 
 var SetSelectorListItemView = Backbone.View.extend({
     tagName: 'div',
-    attributes: {
-        style: 'display: table-row'
-    },
+    className: 'setselector-panel-item',
     events: {
         'click': '_onSelected'
     },
     render: function() {
         var $imgCell = $('<div>')
-            .css('display', 'table-cell')
             .appendTo(this.$el);
 
         if (this.model.has('smallSymbolImageUrl')) {
@@ -169,7 +166,6 @@ var SetSelectorListItemView = Backbone.View.extend({
         }
 
         $('<div>')
-            .css('display', 'table-cell')
             .text(this.model.get('name'))
             .appendTo(this.$el);
 
