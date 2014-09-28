@@ -1,4 +1,11 @@
-<h1>{{set.name}}</h1>
+<div class="cardlist-header">
+    <div class="setselector">
+        <span class="setselector-setname">
+            {{set.name}} 
+        </span>
+        <span class="setselector-changebutton"><i class="fa fa-chevron-down"></i></span>
+    </div>
+</div>
 <div class="cardlist-container">
     <div class="cardlist-tablecontainer">
         <div class="cardlist-table"></div>
@@ -33,6 +40,8 @@ var CardListView = Backbone.View.extend({
     },
     render: function() {
         var fragment = document.createDocumentFragment();
+        this.cardViews = [];
+        this.selectedIndex = -1;
         this.collection.each(function(card, index){
             var childView = new CardListItemView({model: card}).render();
             childView.$el.appendTo(fragment);
@@ -61,6 +70,12 @@ var CardListView = Backbone.View.extend({
         application.vent.trigger('card:show', {
             card: cardView.model
         });
+    },
+    setCollection: function(collection) {
+
+        this.collection = collection;
+        this.render();
+
     }
 });
 var CardListItemView = Backbone.View.extend({
@@ -131,17 +146,127 @@ var CardView = Backbone.View.extend({
     }
 });
 
+var SetSelectorListItemView = Backbone.View.extend({
+    tagName: 'div',
+    attributes: {
+        style: 'display: table-row'
+    },
+    events: {
+        'click': '_onSelected'
+    },
+    render: function() {
+        var $imgCell = $('<div>')
+            .css('display', 'table-cell')
+            .appendTo(this.$el);
+
+        if (this.model.has('smallSymbolImageUrl')) {
+            $('<img>')
+                .attr('title', this.model.get('name'))
+                .attr('src', this.model.get('smallSymbolImageUrl'))
+                .addClass('set-symbol-16')
+                .addClass('set-symbol-' + this.model.get('code'))
+                .appendTo($imgCell);
+        }
+
+        $('<div>')
+            .css('display', 'table-cell')
+            .text(this.model.get('name'))
+            .appendTo(this.$el);
+
+        return this;
+    },
+    _onSelected: function(e) {
+        e.stopPropagation();
+        e.preventDefault();
+        this.trigger('selected')
+    }
+});
+
+var SetSelectorView = Backbone.View.extend({
+    events: {
+        'click .setselector-changebutton': 'togglePanelDisplay'
+    },
+    initialize: function() {
+        this.panelVisible = false;
+    },
+    render: function() {
+        this.$panel = $('<div>')
+            .addClass('setselector-panel')
+            .addClass('hidden')
+            .appendTo(this.$el);
+        var containerView = this;
+
+        var fragment = document.createDocumentFragment();
+        var $setContainer = $('<div>')
+            .css({
+                'display': 'table',
+                'width': '100%'
+            })
+            .appendTo(fragment);
+        this.collection.each(function(set) {
+            var listItemView = new SetSelectorListItemView({
+                model: set
+            }).render();
+            listItemView.$el.appendTo($setContainer);
+            listItemView.on('selected', function() {
+                containerView._selectSet(set);
+            });
+        });
+        this.$panel.append(fragment);
+
+        return this;
+    },
+    rerenderPanel: function() {
+        if (this.panelVisible === true) {
+            this.$panel.removeClass('hidden');
+        } else {
+            this.$panel.addClass('hidden');
+        }
+        return this;
+    },
+    togglePanelDisplay: function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        if (this.panelVisible === true) {
+            this.panelVisible = false;
+        } else {
+            this.panelVisible = true;
+        }
+        this.on('panelVisible:change');
+        this.rerenderPanel();
+    },
+    _selectSet: function(set) {
+        // hide the panel
+        this.panelVisible = false;
+        this.rerenderPanel();
+
+        // update the selected set
+        this.$('.setselector-setname').text(set.get('name'));
+
+        application.vent.trigger('change:set', {
+            set: set
+        });
+    }
+});
+
 var application = {};
 application.vent = _.extend(Backbone.Events);
 application.keyboard = _.extend(Backbone.Events);
 
 (function(){
-    var cardsArray = {{{cardsAsJson}}};
-    var cardsCollection = new Backbone.Collection(cardsArray);
+    var cardsArray = {{{cardsAsJson}}},
+        cardsCollection = new Backbone.Collection(cardsArray),
+        setsArray = {{{setsAsJson}}},
+        setsCollection = new Backbone.Collection(setsArray);
 
     $(document).keydown(function(e) {
         application.keyboard.trigger('keydown', e);
     });
+
+    var setSelectorView = new SetSelectorView({
+        el: $('.setselector'),
+        collection: setsCollection
+    }).render();
 
     var view = new CardListView({
         el: $('.cardlist-table'),
@@ -153,6 +278,13 @@ application.keyboard = _.extend(Backbone.Events);
             el: $('.cardlist-cardview'),
             model: options.card
         }).render();
+    });
+    application.vent.on('change:set', function(options) {
+        $.getJSON('/sets/' + options.set.get('code') + '/cards.json')
+            .done(function(data, success, xhr) {
+                var cardCollection = new Backbone.Collection(data);
+                view.setCollection(cardCollection);
+            });
     });
 })();
 </script>

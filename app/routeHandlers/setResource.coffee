@@ -3,8 +3,8 @@ cardData = require('../cardData')
 
 # create a stripped down version of the card for serialization to the 
 # browser to optimize data transfer
-class CardUiModel
-    constructor: (card, set) ->
+createCardUiModels = (set, cards) ->
+    for card in cards
 
         # split the raw mana cost value into it's parts
         # mana costs are usually written like {2}{G}{B}
@@ -13,7 +13,7 @@ class CardUiModel
             while match = regex.exec(card.manaCost) then match[1]
         )
 
-        @data = {
+        {
             name: card.name
             fullImageUrl: "http://mtgimage.com/actual/set/#{set.code.toLowerCase()}/#{card.imageName}.hq.jpg" 
             manaCost: {
@@ -23,15 +23,21 @@ class CardUiModel
             type: card.type
         }
 
-    # gets the card as a simple object
-    getFieldsAsObject: -> @data
+createSetUiModels = (sets) ->
+    for set in sets
+        {
+            name: set.name
+            code: set.code
+            smallSymbolImageUrl: set.smallSymbolImageUrl
+        }
 
 
 class SetResourceHandler
     setup: (app) -> 
-        app.get '/sets/:code', => @handle arguments...
+        app.get '/sets/:code', => @handleShowSet arguments...
+        app.get '/sets/:code/cards.json', => @handleGetCardsAsJson arguments...
             
-    handle: (req, res) ->
+    handleShowSet: (req, res) ->
         if !req.params.code?
             err = new Error('Unable to find resource')
             err.status = 404
@@ -45,21 +51,32 @@ class SetResourceHandler
 
         cards = cardData.cardsBySet set.code
 
-        cardsAsJson = this.createCardsAsJson(set, cards);
+        cardsAsJson = JSON.stringify(createCardUiModels(set, cards));
+        
+        sets = setData.sets
 
         res.render('setView', {
             title: set.name
             bodyClass: 'setView'
             set: set
             cardsAsJson: cardsAsJson
-            cards: cards
+            setsAsJson: JSON.stringify(createSetUiModels(sets))
         })
 
-    createCardsAsJson: (set, cards) ->
+    handleGetCardsAsJson: (req, res) ->
+        if !req.params.code?
+            err = new Error('Unable to find resource')
+            err.status = 404
+            throw err
 
-        uiCardsArray = (for card in cards
-            new CardUiModel(card, set).getFieldsAsObject()
-        )
-        JSON.stringify(uiCardsArray)
+        set = setData.setByCode req.params.code
+        if !set?
+            err = new Error('Unable to find resource')
+            err.status = 404
+            throw err
+
+        cards = cardData.cardsBySet set.code
+
+        res.json(createCardUiModels(set, cards))
 
 module.exports = SetResourceHandler
