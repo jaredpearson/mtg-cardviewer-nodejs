@@ -76,6 +76,11 @@ var CardListView = Backbone.View.extend({
         this.collection = collection;
         this.render();
 
+        // scroll the cardView to the first card
+        if (this.cardViews.length > 0) {
+            this.cardViews[0].el.scrollIntoView();
+        }
+
     }
 });
 var CardListItemView = Backbone.View.extend({
