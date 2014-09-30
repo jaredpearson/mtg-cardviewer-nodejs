@@ -4,6 +4,7 @@
     "description": "Magic the Gathering Card Viewer",
     "main": "web.js",
     "scripts": {
+        "start": "coffee web.coffee",
         "test": "echo \"Error: no test specified\" && exit 1"
     },
     "repository": {
