@@ -1,11 +1,11 @@
 
-# starting on local machine
+# Starting on local machine
 
 ```
 foreman start
 ```
 
-# starting in Vagrant VM
+# Starting in Vagrant VM
 
 ```
 vagrant up
