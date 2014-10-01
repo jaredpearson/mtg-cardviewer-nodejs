@@ -12,6 +12,9 @@ nvm alias default v0.10.32
 
 chown vagrant:vagrant /home/vagrant/.nvm
 
+# install coffee to global
+npm install -g coffee-script@1.7.1
+
 # install the app dependencies
 cd /home/vagrant/app
 npm install
