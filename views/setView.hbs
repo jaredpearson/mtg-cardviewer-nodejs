@@ -159,16 +159,14 @@ var SetSelectorListItemView = Backbone.View.extend({
     },
     render: function() {
         var $imgCell = $('<div>')
+            .addClass('setselector-panel-item-symbol')
             .appendTo(this.$el);
 
-        if (this.model.has('smallSymbolImageUrl')) {
-            $('<img>')
-                .attr('title', this.model.get('name'))
-                .attr('src', this.model.get('smallSymbolImageUrl'))
-                .addClass('set-symbol-16')
-                .addClass('set-symbol-' + this.model.get('code'))
-                .appendTo($imgCell);
-        }
+        $('<div>')
+            .addClass('set-symbol')
+            .addClass('set-symbol-16')
+            .addClass('set-symbol-' + this.model.get('code'))
+            .appendTo($imgCell);
 
         $('<div>')
             .text(this.model.get('name'))

@@ -1,4 +1,7 @@
 /node_modules
-/public/css/main.css
 /.vagrant
 
+# generated files 
+/public/css/main.css
+/public/css/setSymbol.css
+/public/images/setSymbols.png

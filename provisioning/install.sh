@@ -18,3 +18,6 @@ npm install -g coffee-script@1.7.1
 # install the app dependencies
 cd /home/vagrant/app
 npm install
+
+# install imagemagick
+sudo apt-get install -y imagemagick

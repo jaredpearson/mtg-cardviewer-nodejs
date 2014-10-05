@@ -14,11 +14,18 @@ cd app
 npm start
 ```
 
-# Getting the data
+# Getting the card data
 To update the card data, use the `sync` script as shown below. Make sure to check that the set symbol images for any added sets are correct.
 
 ```
 npm run sync
+```
+
+# Creating the set symbol sprite
+In order to make the card viewer use less network resources, all of the set symbol images are sprited. The actual images (and data) are not stored in Git but can be generated using the following command.
+
+```
+npm run createSetSymbolSprite
 ```
 
 # Magic the Gathering Fan Site License
