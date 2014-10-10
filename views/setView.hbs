@@ -208,7 +208,7 @@ var SetSelectorView = Backbone.View.extend({
             }).render();
             listItemView.$el.appendTo($setContainer);
             listItemView.on('selected', function() {
-                containerView._selectSet(set);
+                containerView.setCardSet(set);
             });
         });
         this.$panel.append(fragment);
@@ -234,7 +234,11 @@ var SetSelectorView = Backbone.View.extend({
         this.on('panelVisible:change');
         this.rerenderPanel();
     },
-    _selectSet: function(set) {
+    setCardSet: function(set, trigger) {
+        if (trigger === void 0) {
+            trigger = true;
+        }
+
         // hide the panel
         this.panelVisible = false;
         this.rerenderPanel();
@@ -242,9 +246,11 @@ var SetSelectorView = Backbone.View.extend({
         // update the selected set
         this.$('.setselector-setname').text(set.get('name'));
 
-        application.vent.trigger('change:set', {
-            set: set
-        });
+        if (trigger) {
+            application.vent.trigger('change:set', {
+                set: set
+            });
+        }
     }
 });
 
@@ -278,12 +284,54 @@ application.keyboard = _.extend(Backbone.Events);
             model: options.card
         }).render();
     });
+
+    // update set collection on set change
     application.vent.on('change:set', function(options) {
         $.getJSON('/sets/' + options.set.get('code') + '/cards.json')
             .done(function(data, success, xhr) {
                 var cardCollection = new Backbone.Collection(data);
                 view.setCollection(cardCollection);
             });
+    });
+
+    // update the title on set change
+    application.vent.on('change:set', function(options) {
+        $('title').text(options.set.get('name') + ' - MTG Card Viewer');
+    });
+
+    // update the set selector on set change
+    application.vent.on('change:set', function(options) {
+        setSelectorView.setCardSet(options.set, false);
+    });
+
+    // set the current history state
+    history.replaceState({code: '{{set.code}}'}, '', '{{set.code}}');
+
+    // update the page state on set change
+    var pushHistory = true;
+    application.vent.on('change:set', function(options) {
+        if (pushHistory) {
+            history.pushState({code: options.set.get('code')}, '', options.set.get('code'));
+        }
+    });
+    $(window).on('popstate', function(event) {
+        var stateObj = event.originalEvent.state
+        if (!stateObj || !stateObj.code) {
+            console.warn('State not found for popstate event');
+            return;
+        }
+
+        var set = setsCollection.findWhere({code: stateObj.code});
+        if (!set) {
+            console.warn('Set not found for code: ' + stateObj.code);
+            return;
+        }
+
+        pushHistory = false;
+        application.vent.trigger('change:set', {
+            set: set
+        });
+        pushHistory = true;
     });
 })();
 </script>
