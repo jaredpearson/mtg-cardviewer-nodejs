@@ -4,15 +4,13 @@
 # and unzips it to the data directory
 #
 
-request = require('request')
+http = require('http')
 fs = require('fs')
 unzip = require('unzip')
+url_parse = require('url').parse
 
-(-> 
-	req = request {
-		url: 'http://mtgjson.com/json/AllSets-x.json.zip'
-	}
-
-	req.on 'response', (res) -> 
+do ->
+	options = url_parse('http://mtgjson.com/json/AllSets-x.json.zip') 
+	req = http.request options, (res) ->
 		res.pipe(unzip.Extract({path: 'data'}))
-)()
+	req.end()
