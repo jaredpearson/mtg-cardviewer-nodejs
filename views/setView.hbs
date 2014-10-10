@@ -31,7 +31,10 @@ var CardListView = Backbone.View.extend({
             if (adjustment !== 0) {
                 e.preventDefault();
                 e.stopPropagation();
-                this.selectByIndex(this.selectedIndex + adjustment);
+                var newIndex = this.selectedIndex + adjustment;
+                if (newIndex >= 0 && newIndex < this.cardViews.length) {
+                    this.selectByIndex(newIndex);
+                }
             }
         }, this);
     },
