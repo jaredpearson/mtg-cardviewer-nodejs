@@ -3,5 +3,7 @@
 
 # generated files 
 /public/css/main.css
-/public/css/setSymbol.css
+/public/css/manaCostSymbols.css
+/public/css/setSymbols.css
+/public/images/manaCostSymbols.png
 /public/images/setSymbols.png

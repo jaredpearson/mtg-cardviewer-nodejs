@@ -7,7 +7,8 @@
         "start": "coffee web.coffee",
         "test": "echo \"Error: no test specified\" && exit 1",
         "sync": "coffee sync.coffee",
-        "createSymbolSprite": "coffee createSymbolSprite.coffee"
+        "createSetSymbolSprite": "coffee createSetSymbolSprite.coffee",
+        "createManaCostsSymbolSprite": "coffee createManaCostsSymbolSprite.coffee"
     },
     "repository": {
         "type": "git",

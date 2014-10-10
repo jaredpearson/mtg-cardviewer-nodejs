@@ -102,12 +102,9 @@ var CardListItemView = Backbone.View.extend({
             .appendTo(this.$el);
 
         _.each(this.model.get('manaCost').parts, function(partValue) {
-            $('<img>')
-                .attr({
-                    'src': 'http://mtgimage.com/symbol/all/' + partValue.replace('/', '') + '/16.png',
-                    'title': partValue,
-                    'alt': partValue
-                })
+            $('<div>')
+                .addClass('manacost-symbol')
+                .addClass('manacost-symbol-' + partValue.replace('/', ''))
                 .appendTo($manaCostContainer);
         });
 
