@@ -34,39 +34,34 @@ cssFilePath = "./public/css/setSymbols.css"
 ###
 downloadAllSetImages = (sets, tempPath, done) ->
 	images = []
+	downloadInputs = []
+	pathToSet = {}
 
-	createDownloadImageTask = (set, i) ->
-		(success) ->
-			handleSuccess = (imagePath) ->
-				console.log("Successfully downloaded #{set.setCode} to #{imagePath}")
+	for set in sets
+		if set.rarities? and Array.isArray(set.rarities) and set.rarities.length > 0
+			rarity = set.rarities[0]
+			url = "http://mtgimage.com/symbol/all/#{set.setCode}/#{rarity}/16.png"
+			destination = "#{tempPath}/#{set.setCode}_16.png"
+			downloadInputs.push new download.DownloadInput(url, destination)
 
-				images[i] = new spriter.SpriteImage(imagePath, "set-symbol-#{set.setCode}")
-				images[i].setCode = set.setCode
+			pathToSet[destination] = set
+		else 
+			console.log "Skipping #{set.setCode} because it doesn't have at least one rarity"
 
-				success?()
-			handleFail = (res) ->
-				console.log "Unable to download image so it is being skipped: #{res.url}", res.statusCode
-				images[i] = undefined
-				success?()
+	handleDownloadEach = (result, i) ->
+		imagePath = result.destination
+		set = pathToSet[imagePath]
 
-			# if there is at least one rarity, use it to download the image
-			if set.rarities? and Array.isArray(set.rarities) and set.rarities.length > 0
-				rarity = set.rarities[0]
-				url = "http://mtgimage.com/symbol/all/#{set.setCode}/#{rarity}/16.png"
-				imagePath = "#{tempPath}/#{set.setCode}_16.png"
+		if result.success
+			console.log "Successfully downloaded #{set.setCode} to #{imagePath}"
+			images.push new spriter.SpriteImage(imagePath, "set-symbol-#{set.setCode}")
+		else 
+			console.log "Unable to download image so it is being skipped: #{result.url}", result.statusCode
 
-				download.downloadFile url, imagePath, handleSuccess, handleFail
-			else 
-				console.log "Skipping #{set.setCode} because it doesn't have at least one rarity"
-				success?()
+	handleDownloadDone = (results) ->
+		done images
 
-	tasks = (createDownloadImageTask(set, i) for set, i in sets)
-	task_manager.parallel tasks, 25, () -> 
-
-		# remove any images that could not be downloaded
-		images.splice(i, 1) for i in [images.length ... 0] when !images[i]?
-
-		done(images)
+	download.downloadAllFiles downloadInputs, handleDownloadDone, handleDownloadEach
 
 ###*
 # downloads the SetSymbol.json file from mtgimage.com
