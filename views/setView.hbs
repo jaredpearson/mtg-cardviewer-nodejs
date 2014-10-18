@@ -5,6 +5,11 @@
         </span>
         <span class="setselector-changebutton"><i class="fa fa-chevron-down"></i></span>
     </div>
+
+    <div class="search">
+        <input id="search-input" type="text" />
+        <i class="search-button fa fa-search fa-lg"></i>
+    </div>
 </div>
 <div class="cardlist-container">
     <div class="cardlist-tablecontainer">
@@ -14,6 +19,120 @@
 </div>
 
 <script type="text/javascript">
+function CardSelectionPanelView() {
+    _.extend(this, Backbone.Events);
+    if (this.initialize) {
+        this.initialize.apply(this, arguments);
+    }
+}
+CardSelectionPanelView.prototype = {
+    initialize: function() {
+        this.$input = $('#search-input');
+    },
+    render: function() {
+        var domFragment = document.createDocumentFragment();
+        this.$el = $('<div>')
+            .attr('id', 'card-selection-panel')
+            .css({
+                position: 'absolute',
+                width: '300px',
+                'background-color': 'white',
+                border: '1px solid black'
+            })
+            .addClass('hidden')
+            .appendTo(domFragment);
+        this._renderResultRows();
+        return this;
+    }, 
+    setData: function(data) {
+        this.data = data;
+        this._resultRowsRendered = false;
+        return this;
+    },
+    show: function() {
+        this._renderResultRows();
+        this.positionUnderInput();
+        this._registerHideOnClickOutside();
+        this.$el.removeClass('hidden');
+        return this;
+    },
+    hide: function() {
+        this.$el.addClass('hidden');
+        this._unregisterHideOnClickOutside();
+        return this;
+    },
+    positionUnderInput: function() {
+        var offset = this.$input.offset();
+        this.$el.css({
+            position: 'absolute',
+            left: this.$input.outerWidth() + offset.left - this.$el.outerWidth(),
+            top: this.$input.outerHeight() + offset.top
+        });
+        return this;
+    },
+    _renderResultRows: function() {
+        if (this._resultRowsRendered) {
+            return;
+        }
+        var that = this;
+
+        this.$el.empty();
+
+        var $rowBuffer = $(document.createDocumentFragment());
+        if (this.data) {
+            this.data.cards.forEach(function(cardSearchResult) {
+                var $resultRow = $('<div>')
+                    .addClass('search-results-row')
+                    .appendTo($rowBuffer);
+
+                $('<div>')
+                    .text(cardSearchResult.card.name)
+                    .appendTo($resultRow);
+
+                $('<div>')
+                    .css('width', '3em')
+                    .text(cardSearchResult.set.code)
+                    .appendTo($resultRow);
+
+                $resultRow.on('click', function() {
+
+                    // trigger the view to change
+                    that.trigger('selected:setAndCard', {
+                        set: cardSearchResult.set,
+                        card: cardSearchResult.card
+                    });
+
+                    // clear the input 
+                    that.$input.val('');
+
+                    // hide the search panel
+                    that.hide();
+                });
+            });
+        }
+
+        $('<div>')
+            .addClass('search-results')
+            .append($rowBuffer)
+            .appendTo(this.$el);
+
+        this._resultRowsRendered = true;
+        return this;
+    },
+    _registerHideOnClickOutside: function() {
+        // Registers an event on the document that hides the doc on click
+        $(document).on('click.card-selection-panel', _.bind(this._handleDocumentClick, this));
+    },
+    _unregisterHideOnClickOutside: function() {
+        $(document).off('.card-selection-panel');
+    },
+    _handleDocumentClick: function(e) {
+        if (!this.$el[0].contains(e.target)) {
+            this.hide();
+        }
+    }
+};
+
 var CardListView = Backbone.View.extend({
     initialize: function() {
         this.selected = null;
@@ -30,16 +149,12 @@ var CardListView = Backbone.View.extend({
 
             if (adjustment !== 0) {
                 e.preventDefault();
-                e.stopPropagation();
                 var newIndex = this.selectedIndex + adjustment;
                 if (newIndex >= 0 && newIndex < this.cardViews.length) {
                     this.selectByIndex(newIndex);
                 }
             }
         }, this);
-    },
-    destroy: function() {
-
     },
     render: function() {
         var fragment = document.createDocumentFragment();
@@ -123,7 +238,6 @@ var CardListItemView = Backbone.View.extend({
         }
     },
     _onSelected: function(e) {
-        e.stopPropagation();
         e.preventDefault();
         this.select();
     }
@@ -175,7 +289,6 @@ var SetSelectorListItemView = Backbone.View.extend({
         return this;
     },
     _onSelected: function(e) {
-        e.stopPropagation();
         e.preventDefault();
         this.trigger('selected')
     }
@@ -225,7 +338,6 @@ var SetSelectorView = Backbone.View.extend({
     },
     togglePanelDisplay: function(e) {
         e.preventDefault();
-        e.stopPropagation();
         if (this.panelVisible === true) {
             this.panelVisible = false;
         } else {
@@ -254,9 +366,70 @@ var SetSelectorView = Backbone.View.extend({
     }
 });
 
-var application = {};
-application.vent = _.extend(Backbone.Events);
-application.keyboard = _.extend(Backbone.Events);
+var SearchView = Backbone.View.extend({
+    tagName: 'div',
+    className: 'search',
+    events: {
+        'click .search-button': 'queryAndShowCardSelection'
+    },
+    initialize: function() {
+        this.$('#search-input').on('keydown', _.debounce(_.bind(function(e) {
+            this.queryAndShowCardSelection();
+        }, this), 200));
+    },
+    render: function() {
+        var that = this;
+
+        this.cardSelectionPanelView = new CardSelectionPanelView().render();
+
+        // keeping the panel in the body so that it can be positioned under the input
+        $('body').append(this.cardSelectionPanelView.$el);
+
+        this.cardSelectionPanelView.on('selected:setAndCard', function(results) {
+            that.trigger('selected:setAndCard', results);
+        });
+
+        return this;
+    },
+    queryAndShowCardSelection: function() {
+        var $input = this.$('#search-input');
+        var query = $input.val();
+
+        if (!query || query.length === 0) {
+            this.cardSelectionPanelView.hide();
+        } else {
+            $.ajax({
+                url: '/search?q=' + encodeURI(query)
+            }).then(_.bind(this.showCardSelectionPanel, this));
+        }
+    },
+    showCardSelectionPanel: function(data) {
+        this.cardSelectionPanelView.setData(data);
+        this.cardSelectionPanelView.show();
+    }
+});
+
+function getCardCollectionForSet(setCode, callback) {
+    // get the cards that are associated to the set
+    $.getJSON('/sets/' + setCode + '/cards.json')
+        .done(function(data, success, xhr) {
+            if (success && data) {
+                var cardCollection = new Backbone.Collection(data);
+                callback(cardCollection, data, success, xhr);
+            } else {
+                callback(undefined, data, success, xhr);
+            }
+        });
+}
+
+window.application = {
+    vent: _.extend(Backbone.Events),
+    keyboard: _.extend(Backbone.Events)
+};
+
+$(document).keydown(function(e) {
+    window.application.keyboard.trigger('keydown', e);
+});
 
 (function(){
     var cardsArray = {{{cardsAsJson}}},
@@ -264,19 +437,48 @@ application.keyboard = _.extend(Backbone.Events);
         setsArray = {{{setsAsJson}}},
         setsCollection = new Backbone.Collection(setsArray);
 
-    $(document).keydown(function(e) {
-        application.keyboard.trigger('keydown', e);
-    });
-
     var setSelectorView = new SetSelectorView({
         el: $('.setselector'),
         collection: setsCollection
     }).render();
 
-    var view = new CardListView({
+    var cardListView = new CardListView({
         el: $('.cardlist-table'),
         collection: cardsCollection
     }).render();
+
+    function showCardCollection(cardCollection) {
+        cardListView.setCollection(cardCollection);
+    }
+
+    var searchView = new SearchView({
+        el: $('.search')
+    }).render();
+    searchView.on('selected:setAndCard', function(results) {
+        // find the set with the given code
+        var set = setsCollection.findWhere({code: results.set.code});
+        if (set) {
+            getCardCollectionForSet(set.get('code'), function(cardCollection){
+                if (cardCollection) {
+                    application.vent.trigger('change:set', {
+                        set: set,
+                        cardCollection: cardCollection
+                    });
+
+                    // attempt to find the selected card from the collection
+                    var card = cardCollection.findWhere({number: results.card.number});
+                    if (card) {
+
+                        // update the card preview panel
+                        application.vent.trigger('card:show', {card: card});
+
+                        // select the card on the card list
+                        cardListView.selectByIndex(cardCollection.indexOf(card));
+                    }
+                }
+            });
+        }
+    });
 
     application.vent.on('card:show', function(options) {
         var cardView = new CardView({
@@ -287,11 +489,15 @@ application.keyboard = _.extend(Backbone.Events);
 
     // update set collection on set change
     application.vent.on('change:set', function(options) {
-        $.getJSON('/sets/' + options.set.get('code') + '/cards.json')
-            .done(function(data, success, xhr) {
-                var cardCollection = new Backbone.Collection(data);
-                view.setCollection(cardCollection);
+        if (!options.cardCollection) {
+            getCardCollectionForSet(options.set.get('code'), function(cardCollection) {
+                if (cardCollection) {
+                    showCardCollection(cardCollection);
+                }
             });
+        } else {
+            showCardCollection(options.cardCollection);
+        }
     });
 
     // update the title on set change

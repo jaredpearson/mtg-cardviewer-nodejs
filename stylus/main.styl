@@ -10,10 +10,33 @@ body
     padding: 10px;
     margin-bottom: 10px;
     background-color: black;
+    color: white;
 
     a 
         text-decoration: initial;
         color: white;
+
+    & .header-button
+        display: inline-block
+
+.header-search
+    display: inline-block
+    position: absolute
+    right: 10px
+    top: 39px
+
+#card-selection-panel
+    z-index: 100
+
+    .search-results
+        display: table
+        width: 100%
+
+        &-row
+            display: table-row
+
+            & > div
+                display: table-cell
 
 #layout-body 
     padding: 0 10px 0 10px;

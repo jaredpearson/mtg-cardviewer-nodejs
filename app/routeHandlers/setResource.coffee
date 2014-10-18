@@ -21,6 +21,7 @@ createCardUiModels = (set, cards) ->
                 parts: manaCostParts
             }
             type: card.type
+            number: card.number
         }
 
 createSetUiModels = (sets) ->
