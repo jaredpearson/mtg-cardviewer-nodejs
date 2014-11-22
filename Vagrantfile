@@ -4,6 +4,10 @@
 VAGRANTFILE_API_VERSION = "2"
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+  config.vm.provider "virtualbox" do |v|
+    v.name = "mtg_cardviewer"
+  end
+
   config.vm.box = "Ubuntu precise 64 VirtualBox"
   config.vm.network "forwarded_port", guest: 5000, host: 5000
   config.vm.network "private_network", ip: "192.168.33.10"
