@@ -65,7 +65,7 @@ downloadAllManaCostImages = (manaCosts, tempPath, success) ->
 
 	download.downloadAllFiles downloadInputs, handleDownloadAllDone, handleDownloadAllDoneEach
 
-generate = (tempPath, spriteImage, cssFilePath, success) ->
+exports.generate = (tempPath, spriteImage, cssFilePath, success) ->
 
 	# make a temporary directory to store all of the files
 	try
@@ -94,4 +94,5 @@ generate = (tempPath, spriteImage, cssFilePath, success) ->
 
 					success?()
 
-generate tempPath, spriteImagePath, cssFilePath
+if require.main == module
+	exports.generate tempPath, spriteImagePath, cssFilePath

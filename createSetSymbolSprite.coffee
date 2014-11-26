@@ -96,7 +96,7 @@ processSetSymbolManifest = (path, success) ->
 		} for own setCode, rarities of dataAsJson)
 		success?(setSymbols)
 
-generate = (tempPath, spriteImagePath, cssFilePath, success) ->
+exports.generate = (tempPath, spriteImagePath, cssFilePath, success) ->
 	# make a temporary directory to store all of the files
 	try
 		fs.mkdirSync(tempPath)
@@ -126,6 +126,6 @@ generate = (tempPath, spriteImagePath, cssFilePath, success) ->
 
 						success?()
 		
-
-generate tempPath, spriteImagePath, cssFilePath
+if require.main == module
+	exports.generate tempPath, spriteImagePath, cssFilePath
 	
